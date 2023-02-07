@@ -4,16 +4,15 @@ const app = express();
 const QRCode = require("qrcode");
 // __ Importing jimp __ \\
 const Jimp = require("jimp");
-
 // __ Importing filesystem = __ \\
 const fs = require("fs");
-
 // __ Importing qrcode-reader __ \\
 const qrCodeReader = require("qrcode-reader");
+const route = require("./routes");
+const errorMiddleware = require("./app/middlewares/ErrorMiddlewares");
+const db = require("./config/db");
 
-const auth = require("./route");
-
-app.use("/auth", auth);
+db.connect();
 
 let data = {
   apartment: "404",
@@ -26,6 +25,18 @@ const myJSON = JSON.stringify(data);
 let wait = async (ms) => {
   return new Promise((r) => setTimeout(r, ms));
 };
+
+QRCode.toDataURL(
+  "my-server/file.png",
+  ` ${myJSON}`,
+  {
+    errorCorrectionLevel: "H",
+  },
+  function (err) {
+    if (err) throw err;
+    console.log("QR code saved!");
+  }
+);
 
 let toFile = () =>
   QRCode.toFile(
@@ -76,6 +87,11 @@ writeAndRead();
 //     if (err) throw err;
 //     console.log(data);
 //   });
+
+route(app);
+
+app.use(errorMiddleware);
+
 const port = process.env.PORT || 3001;
 app.listen(port, () => {
   console.log(`Listening to port ${port}...`);
