@@ -10,6 +10,9 @@ const UserSchema = new mongoose.Schema({
   apartment: {
     type: String,
   },
+  role: {
+    type: String,
+  }
 });
 
 module.exports = mongoose.model("usersTest", UserSchema);

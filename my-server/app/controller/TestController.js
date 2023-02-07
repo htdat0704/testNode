@@ -1,17 +1,14 @@
 const TestService = require("../services/TestServices");
 const ErrorHandler = require("../../utils/errorHandler");
+const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 
 class TestController {
-  getOneUser = async (req, res, next) => {
-    try {
+  getOneUser = catchAsyncErrors(async (req, res, next) => {
       res.json({
         users: await TestService.searchDetail(req.params.id),
         success: true,
       });
-    } catch (e) {
-      return next(new ErrorHandler(e, 400));
-    }
-  };
+  });
 }
 
 module.exports = new TestController();

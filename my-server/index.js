@@ -9,7 +9,7 @@ const fs = require("fs");
 // __ Importing qrcode-reader __ \\
 const qrCodeReader = require("qrcode-reader");
 const route = require("./routes");
-const errorMiddleware = require("./app/middlewares/ErrorMiddlewares");
+const errorMiddleware = require("./app/middleware/ErrorMiddleware");
 const db = require("./config/db");
 
 db.connect();
