@@ -11,6 +11,7 @@ const TestController = require("../app/controller/TestController");
 
 // router.get('/details/:id', TestController.detailsProduct);
 router.post("/generate", isAuthenticatedUser, TestController.generateQR);
+router.get("/getQR",isAuthenticatedUser, TestController.getQR)
 
 // router.get(
 //   "/admin/generate",

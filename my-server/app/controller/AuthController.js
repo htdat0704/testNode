@@ -4,6 +4,7 @@ const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const ErrorHandler = require("../../utils/errorHandler");
 const sendToken = require("../../utils/sendToken");
 const jwt = require("jsonwebtoken");
+const argon2 = require("argon2");
 
 class AuthController {
   register = catchAsyncErrors(async (req, res, next) => {
@@ -24,10 +25,10 @@ class AuthController {
   });
 
   login = catchAsyncErrors(async (req, res, next) => {
-    let userLogin = await UserService.findByEmailForLogin(req.body.name);
+    let userLogin = await AuthService.findByEmailForLogin(req.body.email);
 
     if (!userLogin) {
-      return next(new ErrorHandler("User not found", 404));
+      return next(new ErrorHandler("Email not found", 404));
     }
 
     const passwordValid = await argon2.verify(

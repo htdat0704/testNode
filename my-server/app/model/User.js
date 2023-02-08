@@ -31,19 +31,10 @@ const UserSchema = new mongoose.Schema({
   },
   qrCode: [
     {
-      public_id: {
-        type: String,
-      },
-      url: {
-        type: String,
-      },
-      validDate: {
-        type: Date,
-      },
-      createdAt: {
-        type: Date,
-        default: Date.now(),
-      },
+      idQR: {
+        type: mongoose.Schema.ObjectId,
+        ref: "qrCodes"
+      }
     },
   ],
 });

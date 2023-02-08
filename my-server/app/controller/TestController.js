@@ -7,6 +7,7 @@ const fs = require("fs");
 const ErrorHandler = require("../../utils/errorhandler");
 const jsQR = require("jsqr");
 const { getSync } = require("@andreekeberg/imagedata");
+const datefn = require("date-fns");
 
 class TestController {
   generateQR = catchAsyncErrors(async (req, res, next) => {
@@ -17,6 +18,17 @@ class TestController {
       success: true,
     });
   });
+
+  getQR = catchAsyncErrors(async (req, res, next) => {
+    for(let qr of req.user.qrCode){
+      console.log(new Date(qr.validDate),)
+      console.log(Math.abs(datefn.differenceInHours(new Date(), new Date(qr.validDate) )))
+    }
+    res.json({
+      qrCode: req.user.qrCode,
+      success: true,
+    });
+  })
 
   QRCodeReader = catchAsyncErrors(async (req, res, next) => {
     const qrCodeInstance = new qrCodeReader();
