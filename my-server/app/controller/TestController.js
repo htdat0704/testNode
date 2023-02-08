@@ -11,21 +11,23 @@ const datefn = require("date-fns");
 
 class TestController {
   generateQR = catchAsyncErrors(async (req, res, next) => {
-    let user = await TestService.generateQR(req.body, req.user);
+    let codeQR = await TestService.generateQRinDB(req.body,req.user._id);
 
     res.json({
-      user,
+      qr: await TestService.generateQR(codeQR._id, req.user),
       success: true,
     });
   });
 
   getQR = catchAsyncErrors(async (req, res, next) => {
-    for(let qr of req.user.qrCode){
-      console.log(new Date(qr.validDate),)
-      console.log(Math.abs(datefn.differenceInHours(new Date(), new Date(qr.validDate) )))
-    }
+    // for(let qr of req.user.qrCode){
+    //   console.log(new Date(qr.validDate),)
+    //   console.log(Math.abs(datefn.differenceInHours(new Date(), new Date(qr.validDate))))
+    // }
+
+    
     res.json({
-      qrCode: req.user.qrCode,
+      qrCode: await TestService.getOneUserQRCodes(req.user._id),
       success: true,
     });
   })

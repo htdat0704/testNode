@@ -29,14 +29,6 @@ const UserSchema = new mongoose.Schema({
     type: String,
     default: "owner",
   },
-  qrCode: [
-    {
-      idQR: {
-        type: mongoose.Schema.ObjectId,
-        ref: "qrCodes"
-      }
-    },
-  ],
 });
 
 module.exports = mongoose.model("usersTest", UserSchema);

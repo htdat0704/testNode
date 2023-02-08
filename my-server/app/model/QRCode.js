@@ -24,6 +24,13 @@ const QRCodeSchema = new mongoose.Schema({
     validDate: {
       type: Date,
     },
+
+      
+        userId: {
+          type: mongoose.Schema.ObjectId,
+          ref: "qrCodes"
+        },
+      
     createdAt: {
       type: Date,
       default: Date.now(),

@@ -1,4 +1,5 @@
 const User = require("../model/User");
+const QRCodeModel = require("../model/QRCode");
 const QRCode = require("qrcode");
 const cloudinary = require("cloudinary");
 
@@ -10,31 +11,32 @@ exports.findByName = async (name) => {
   return await User.findOne({ name });
 };
 
-exports.generateQR = async (body, user) => {
-  let bodyQR = {
-    name: body.name,
-    validDate: body.validDate,
-    avatar: {},
-    relative: body.relative
-  };
+exports.getOneUserQRCodes = async (userId) => {
+  return await QRCodeModel.find({userId});
+}
 
+exports.generateQRinDB = async (body, userId) => {
   const resultAvatar = await cloudinary.v2.uploader.upload(body.avatar, {
     folder: "qrCodes/avatar",
     width: 250,
     crop: "scale",
   });
 
-  bodyQR.avatar = {
+  let bodyQR = new QRCodeModel({
+    name: body.name,
+    validDate: body.validDate,
+    avatar: {
     public_id: resultAvatar.public_id,
     url: resultAvatar.secure_url,
-  };
+    },
+    userId,
+    relative: body.relative
+  })
 
-  user.qrCode.push({
-    ...bodyQR,
-  });
+  return await bodyQR.save();
+};
 
-  const userUpdated = await User.findByIdAndUpdate(user._id, { qrCode: user.qrCode }).select("qrCode");
-
+exports.generateQR = async(QRId) => {
   // let qr = await QRCode.toDataURL(
   //   JSON.stringify({
   //     name: body.name,
@@ -46,7 +48,7 @@ exports.generateQR = async (body, user) => {
   // );
 
   let qr = await QRCode.toDataURL(
-    userUpdated.qrCode[userUpdated.qrCode.length-1]._id.toString()
+    QRId.toString()
   );
 
   const result = await cloudinary.v2.uploader.upload(qr, {
@@ -55,13 +57,10 @@ exports.generateQR = async (body, user) => {
     crop: "scale",
   });
 
-  userUpdated.qrCode.forEach(qr => {
-    if (qr._id.toString() === userUpdated.qrCode[userUpdated.qrCode.length]._id.toString()) {
-      qr.public_id = result.public_id
-      qr.url = result.secure_url
-    }
- });
-  
-  await userUpdated.save({validateBeforeSave: false})
-  return User.findById(user._id);
-};
+  await QRCodeModel.findByIdAndUpdate(QRId, {
+    public_id: result.public_id,
+    url: result.secure_url,
+  })
+
+  return result.secure_url;
+}
