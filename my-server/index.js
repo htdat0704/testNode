@@ -1,85 +1,38 @@
 // __ index.js __ \\
 const express = require("express");
 const app = express();
-const QRCode = require("qrcode");
 // __ Importing jimp __ \\
-const Jimp = require("jimp");
+
 // __ Importing filesystem = __ \\
-const fs = require("fs");
+
 // __ Importing qrcode-reader __ \\
-const qrCodeReader = require("qrcode-reader");
 const route = require("./routes");
 const errorMiddleware = require("./app/middleware/ErrorMiddleware");
 const db = require("./config/db");
+const cors = require("cors");
+const cloudinary = require("cloudinary");
+const cookieParser = require("cookie-parser");
+require("dotenv").config();
 
 db.connect();
 
-let data = {
-  apartment: "404",
-  name: "Long",
-  relative: "owner",
-};
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
-const myJSON = JSON.stringify(data);
-
-let wait = async (ms) => {
-  return new Promise((r) => setTimeout(r, ms));
-};
-
-QRCode.toDataURL(
-  "my-server/file.png",
-  ` ${myJSON}`,
-  {
-    errorCorrectionLevel: "H",
-  },
-  function (err) {
-    if (err) throw err;
-    console.log("QR code saved!");
-  }
+app.use(
+  express.urlencoded({
+    extended: true,
+    limit: "25mb",
+  })
 );
-
-let toFile = () =>
-  QRCode.toFile(
-    "my-server/file.png",
-    ` ${myJSON}`,
-    {
-      errorCorrectionLevel: "H",
-    },
-    function (err) {
-      if (err) throw err;
-      console.log("QR code saved!");
-    }
-  );
-
-const read = () => {
-  const buffer = fs.readFileSync("my-server/file.png");
-  Jimp.read(buffer, (err, image) => {
-    if (err) {
-      console.error(err);
-    }
-    // __ Creating an instance of qrcode-reader __ \\
-    const qrCodeInstance = new qrCodeReader();
-
-    qrCodeInstance.callback = function (err, value) {
-      if (err) {
-        console.error(err);
-      }
-      // __ Printing the decrypted value __ \\
-      console.log(value.result);
-    };
-
-    // __ Decoding the QR code __ \\
-    qrCodeInstance.decode(image.bitmap);
-  });
-};
-
-const writeAndRead = async () => {
-  toFile();
-  await wait(2016);
-  read();
-};
-
-writeAndRead();
+app.use(express.json({ limit: "25mb" }));
+app.use(cookieParser());
+// let wait = async (ms) => {
+//   return new Promise((r) => setTimeout(r, ms));
+// };
 // QRCode.toString('Encode this text in QR code', {
 //     errorCorrectionLevel: 'H',
 //     type: 'svg'
@@ -87,12 +40,13 @@ writeAndRead();
 //     if (err) throw err;
 //     console.log(data);
 //   });
+app.use(cors());
 
 route(app);
 
 app.use(errorMiddleware);
 
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 4000;
 app.listen(port, () => {
   console.log(`Listening to port ${port}...`);
 });

@@ -1,4 +1,5 @@
 const mongo = require("mongoose");
+mongo.set("strictQuery", false);
 
 async function connect() {
   try {
@@ -9,7 +10,7 @@ async function connect() {
         useUnifiedTopology: true,
       }
     );
-    console.log("Connection Succes!!!");
+    console.log("Connection Success!!!");
   } catch (error) {
     console.log("Connection Failed!!!");
   }
