@@ -113,7 +113,7 @@ class TestController {
     //   process.env.BASE64.replace(/^data:image\/(png|jpg);base64,/, "")
     // );
     var buffer = Buffer.from(
-      req.base64QR.replace(/^data:image\/(png|jpg);base64,/, ""),
+      req.body.base64QR.replace(/^data:image\/(png|jpg);base64,/, ""),
       "base64"
     );
 
