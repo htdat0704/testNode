@@ -5,32 +5,79 @@ const Jimp = require("jimp");
 const qrCodeReader = require("qrcode-reader");
 const fs = require("fs");
 const ErrorHandler = require("../../utils/errorhandler");
-const jsQR = require("jsqr");
-const { getSync } = require("@andreekeberg/imagedata");
 const datefn = require("date-fns");
+const crypto = require("crypto-js");
+const CronJob = require("cron").CronJob;
+
+// new CronJob(
+//   "* * * * *",
+//   async () => {
+//     const invalidQRs = await TestService.invalidQRCodes();
+//     for (let qr of invalidQRs) {
+//       await TestService.deleteQRCodes(qr);
+//     }
+
+//     console.log("Deleting expired QR.......");
+//   },
+//   true,
+//   "Asia/Ho_Chi_Minh"
+// );
 
 class TestController {
   generateQR = catchAsyncErrors(async (req, res, next) => {
-    let codeQR = await TestService.generateQRinDB(req.body,req.user._id);
+    let codeQR = await TestService.generateQRinDB(req.body, req.user._id);
+    res.json({
+      qr: await TestService.generateQR(codeQR._id),
+      codeQRInformation: codeQR,
+      success: true,
+    });
+  });
+
+  checkQR = catchAsyncErrors(async (req, res, next) => {
+    if (!req.body.checkQR) {
+      return next(new ErrorHandler("QR not found or expired!", 404));
+    }
+
+    var bytes = crypto.AES.decrypt(req.body.checkQR, process.env.QR_SECRET);
+
+    var message_decode = bytes.toString(crypto.enc.Utf8);
+
+    if (!message_decode) {
+      return next(new ErrorHandler("QR not found or expired!!", 404));
+    }
+
+    const qrInformation = await TestService.findQR(message_decode);
+
+    if (!qrInformation) {
+      return next(new ErrorHandler("QR not found or expired!!!", 404));
+    }
 
     res.json({
-      qr: await TestService.generateQR(codeQR._id, req.user),
+      qrInformation,
       success: true,
     });
   });
 
   getQR = catchAsyncErrors(async (req, res, next) => {
-    // for(let qr of req.user.qrCode){
-    //   console.log(new Date(qr.validDate),)
-    //   console.log(Math.abs(datefn.differenceInHours(new Date(), new Date(qr.validDate))))
-    // }
+    for (let qr of req.user.qrCode) {
+      console.log(new Date(qr.validDate));
+      console.log(
+        Math.abs(datefn.differenceInHours(new Date(qr.validDate), new Date()))
+      );
+    }
 
-    
     res.json({
       qrCode: await TestService.getOneUserQRCodes(req.user._id),
       success: true,
     });
-  })
+  });
+
+  invalidQR = catchAsyncErrors(async (req, res, next) => {
+    res.json({
+      qrCode: await TestService.invalidQRCodes(),
+      success: true,
+    });
+  });
 
   QRCodeReader = catchAsyncErrors(async (req, res, next) => {
     const qrCodeInstance = new qrCodeReader();
@@ -38,7 +85,7 @@ class TestController {
     let string = "null";
     qrCodeInstance.callback = function (err, value) {
       if (err) {
-        return new ErrorHandler("Error QR", 403);
+        return next(new ErrorHandler("QR not found or expired", 404));
       }
       // __ Printing the decrypted value __ \\
       string = value.result;
