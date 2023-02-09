@@ -61,8 +61,25 @@ exports.generateQR = async (QRId) => {
     public_id: result.public_id,
     url: result.secure_url,
   });
-  console.log(qrIdDecode);
   return result.secure_url;
+};
+
+exports.storeScanHistory = async (qrInformation, security) => {
+  const securityScanned = await User.findById(security._id);
+  securityScanned.scanHistory
+    ? securityScanned.scanHistory.push({
+        userId: qrInformation.userId,
+        name: qrInformation.name,
+        relative: qrInformation.relative,
+      })
+    : (securityScanned.scanHistory = [
+        {
+          userId: qrInformation,
+          name: qrInformation.name,
+          relative: qrInformation.relative,
+        },
+      ]);
+  await securityScanned.save();
 };
 
 exports.findQR = async (QRId) => {

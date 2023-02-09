@@ -14,6 +14,18 @@ async function connect() {
   } catch (error) {
     console.log("Connection Failed!!!");
   }
+  // try {
+  //   await mongo.connect(
+  //     "mongodb+srv://durand:123123123@cluster0.kllganq.mongodb.net/testDurand?retryWrites=true&w=majority",
+  //     {
+  //       useNewUrlParser: true,
+  //       useUnifiedTopology: true,
+  //     }
+  //   );
+  //   console.log("Connection Success!!!");
+  // } catch (error) {
+  //   console.log("Connection Failed!!!");
+  // }
 }
 
 module.exports = { connect };

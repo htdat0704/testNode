@@ -37,6 +37,11 @@ router.get(
 //   authorizeRole("admin"),
 //   TestController.generateQR
 // );
-router.get("/reader", isAuthenticatedUser, TestController.QRCodeReader);
+router.post(
+  "/reader",
+  isAuthenticatedUser,
+  authorizeRole("security", "admin"),
+  TestController.QRCodeReader
+);
 
 module.exports = router;

@@ -35,7 +35,7 @@ class TestController {
 
   checkQR = catchAsyncErrors(async (req, res, next) => {
     if (!req.body.checkQR) {
-      return next(new ErrorHandler("QR not found or expired!", 404));
+      return next(new ErrorHandler("QR not found or expired!", 403));
     }
 
     var bytes = crypto.AES.decrypt(req.body.checkQR, process.env.QR_SECRET);
@@ -43,15 +43,20 @@ class TestController {
     var message_decode = bytes.toString(crypto.enc.Utf8);
 
     if (!message_decode) {
-      return next(new ErrorHandler("QR not found or expired!!", 404));
+      return next(new ErrorHandler("QR not found or expired!!", 403));
     }
 
     const qrInformation = await TestService.findQR(message_decode);
 
     if (!qrInformation) {
-      return next(new ErrorHandler("QR not found or expired!!!", 404));
+      return next(new ErrorHandler("QR not found or expired!!!", 403));
     }
 
+    if (!qrInformation._id && !req.user._id) {
+      return next(new ErrorHandler("USER NOT FOUND", 404));
+    }
+
+    await TestService.storeScanHistory(qrInformation, req.user._id);
     res.json({
       qrInformation,
       success: true,
@@ -60,7 +65,7 @@ class TestController {
 
   getQR = catchAsyncErrors(async (req, res, next) => {
     let qrCodes = await TestService.getOneUserQRCodes(req.user._id);
-    if (!qrCodes) {
+    if (qrCodes.length === 0) {
       return next(new ErrorHandler("Don't have QRCodes pls Update", 404));
     }
 
@@ -80,7 +85,6 @@ class TestController {
   QRCodeReader = catchAsyncErrors(async (req, res, next) => {
     const qrCodeInstance = new qrCodeReader();
 
-    let string = "null";
     qrCodeInstance.callback = async (err, value) => {
       if (err) {
         return next(new ErrorHandler("QR not found or expired", 404));
@@ -109,7 +113,7 @@ class TestController {
     //   process.env.BASE64.replace(/^data:image\/(png|jpg);base64,/, "")
     // );
     var buffer = Buffer.from(
-      process.env.BASE64.replace(/^data:image\/(png|jpg);base64,/, ""),
+      req.base64QR.replace(/^data:image\/(png|jpg);base64,/, ""),
       "base64"
     );
 

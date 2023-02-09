@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { relative } = require("path");
 
 const UserSchema = new mongoose.Schema({
   email: {
@@ -29,6 +30,24 @@ const UserSchema = new mongoose.Schema({
     type: String,
     default: "owner",
   },
+  scanHistory: [
+    {
+      userId: {
+        type: mongoose.Schema.ObjectId,
+        ref: "qrCodes",
+      },
+      scanDate: {
+        type: Date,
+        default: Date.now(),
+      },
+      name: {
+        type: String,
+      },
+      relative: {
+        type: String,
+      },
+    },
+  ],
 });
 
 module.exports = mongoose.model("usersTest", UserSchema);

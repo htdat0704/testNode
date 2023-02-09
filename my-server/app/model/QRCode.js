@@ -9,9 +9,11 @@ const QRCodeSchema = new mongoose.Schema({
   },
   name: {
     type: String,
+    require: true,
   },
   relative: {
     type: String,
+    require: true,
   },
   avatar: {
     public_id: {
