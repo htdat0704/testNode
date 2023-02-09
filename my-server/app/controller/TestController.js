@@ -59,15 +59,13 @@ class TestController {
   });
 
   getQR = catchAsyncErrors(async (req, res, next) => {
-    for (let qr of req.user.qrCode) {
-      console.log(new Date(qr.validDate));
-      console.log(
-        Math.abs(datefn.differenceInHours(new Date(qr.validDate), new Date()))
-      );
+    let qrCodes = await TestService.getOneUserQRCodes(req.user._id);
+    if (!qrCodes) {
+      return next(new ErrorHandler("Don't have QRCodes pls Update", 404));
     }
 
     res.json({
-      qrCode: await TestService.getOneUserQRCodes(req.user._id),
+      qrCodes,
       success: true,
     });
   });
