@@ -8,6 +8,7 @@ exports.register = async (body) => {
     name: body.name,
     apartment: body.apartment,
     password: await argon2.hash(body.password),
+    role: body.role || "owner",
     qrCode: [],
     avatar: {},
   };

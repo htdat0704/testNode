@@ -14,11 +14,15 @@ exports.findByName = async (name) => {
   return await User.findOne({ name });
 };
 
+exports.findByEmail = async (email) => {
+  return await User.findOne({ email });
+};
+
 exports.getOneUserQRCodes = async (userId) => {
   return await QRCodeModel.find({ userId });
 };
 
-exports.generateQRinDB = async (body, userId) => {
+exports.generateQRinDB = async (body, user) => {
   const resultAvatar = await cloudinary.v2.uploader.upload(body.avatar, {
     folder: "qrCodes/avatar",
     width: 250,
@@ -28,28 +32,19 @@ exports.generateQRinDB = async (body, userId) => {
   let bodyQR = new QRCodeModel({
     name: body.name,
     validDate: body.validDate,
+    relative: body.relative,
     avatar: {
       public_id: resultAvatar.public_id,
       url: resultAvatar.secure_url,
     },
-    userId,
-    relative: body.relative,
+    userId: user._id,
+    apartment: user.apartment,
   });
 
   return await bodyQR.save();
 };
 
 exports.generateQR = async (QRId) => {
-  // let qr = await QRCode.toDataURL(
-  //   JSON.stringify({
-  //     name: body.name,
-  //     apartment: user.apartment,
-  //     relative: body.relative,
-  //     avatar: bodyQR.avatar.url,
-  //     validDate: new Date(body.validDate),
-  //   })
-  // );
-
   let qrIdDecode = crypto.AES.encrypt(
     QRId.toString(),
     process.env.QR_SECRET

@@ -8,7 +8,7 @@ const argon2 = require("argon2");
 
 class AuthController {
   register = catchAsyncErrors(async (req, res, next) => {
-    let userRegister = await UserService.findByName(req.body.email);
+    let userRegister = await UserService.findByEmail(req.body.email);
 
     if (userRegister) {
       return next(new ErrorHandler("Email has been taken", 400));
