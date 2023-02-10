@@ -1,18 +1,19 @@
-// __ index.js __ \\
 const express = require("express");
+require("dotenv").config();
 const app = express();
-// __ Importing jimp __ \\
-
-// __ Importing filesystem = __ \\
-
-// __ Importing qrcode-reader __ \\
 const route = require("./routes");
 const errorMiddleware = require("./app/middleware/ErrorMiddleware");
 const db = require("./config/db");
+const firebaseConfig = require("./config/firebase");
+const serviceAccount = require("./config/firebase/serviceAccountKey.json");
 const cors = require("cors");
 const cloudinary = require("cloudinary");
 const cookieParser = require("cookie-parser");
-require("dotenv").config();
+const firebaseAdmin = require("firebase-admin");
+
+firebaseAdmin.initializeApp({
+  credential: firebaseAdmin.credential.cert(serviceAccount),
+});
 
 db.connect();
 
@@ -30,16 +31,6 @@ app.use(
 );
 app.use(express.json({ limit: "25mb" }));
 app.use(cookieParser());
-// let wait = async (ms) => {
-//   return new Promise((r) => setTimeout(r, ms));
-// };
-// QRCode.toString('Encode this text in QR code', {
-//     errorCorrectionLevel: 'H',
-//     type: 'svg'
-//   }, function(err, data) {
-//     if (err) throw err;
-//     console.log(data);
-//   });
 app.use(cors());
 
 route(app);

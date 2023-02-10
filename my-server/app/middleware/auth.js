@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken");
 
 const ErrorHandler = require("../../utils/errorHandler");
 const UserService = require("../services/AuthServices");
+const firebaseAdmin = require("firebase-admin");
 
 exports.isAuthenticatedUser = async (req, res, next) => {
   const authHeader = req.header("Authorization");
@@ -18,7 +19,24 @@ exports.isAuthenticatedUser = async (req, res, next) => {
 
     next();
   } catch (e) {
-    return next(new ErrorHandler("Invalid Token"), 403);
+    return next(new ErrorHandler("Invalid Token"), 401);
+  }
+};
+
+exports.isAuthenticatedUserByFirebase = async (req, res, next) => {
+  try {
+    const authHeader = req.header("Authorization");
+    const idToken =
+      (authHeader && authHeader.split(" ")[1]) || req.cookies.token;
+
+    // if (!req.headers.authorization || !req.headers.authorization.startsWith('Bearer ')) {
+    //   throw 'Unauthorized'
+    // }
+    // const idToken = req.headers.authorization.split('Bearer ')[1];
+    req.user = await firebaseAdmin.auth().verifyIdToken(idToken);
+    next();
+  } catch (e) {
+    return next(new ErrorHandler("Unauthorized"), 401);
   }
 };
 

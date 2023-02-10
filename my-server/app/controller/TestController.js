@@ -1,11 +1,8 @@
 const TestService = require("../services/TestServices");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
-const QRCode = require("qrcode");
 const Jimp = require("jimp");
 const qrCodeReader = require("qrcode-reader");
-const fs = require("fs");
 const ErrorHandler = require("../../utils/errorHandler");
-const datefn = require("date-fns");
 const crypto = require("crypto-js");
 const CronJob = require("cron").CronJob;
 

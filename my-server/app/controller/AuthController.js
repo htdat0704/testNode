@@ -5,6 +5,8 @@ const ErrorHandler = require("../../utils/errorHandler");
 const sendToken = require("../../utils/sendToken");
 const jwt = require("jsonwebtoken");
 const argon2 = require("argon2");
+const firebaseAdmin = require("firebase-admin");
+const firebaseClient = require("../../config/firebase");
 
 class AuthController {
   register = catchAsyncErrors(async (req, res, next) => {
@@ -22,6 +24,43 @@ class AuthController {
     );
 
     sendToken(userRegister, accessToken, res);
+  });
+
+  registerWithFirebase = catchAsyncErrors(async (req, res, next) => {
+    firebaseAdmin
+      .auth()
+      .createUser({
+        email: req.body.email,
+        password: req.body.password,
+      })
+      .then((createdUser) => {
+        res.json({
+          success: true,
+          message: "User created success!",
+          createdUser,
+        });
+      })
+      .catch((exception) => {
+        return next(new ErrorHandler(exception, 500));
+      });
+  });
+
+  loginWithFirebase = catchAsyncErrors(async (req, res, next) => {
+    const { email, password } = req.body;
+    let user = {};
+    firebaseClient
+      .auth()
+      .signInWithEmailAndPassword(email, password)
+      .then((authenticatedUser) => {
+        user = authenticatedUser;
+        return firebaseClient.auth().currentUser.getIdToken();
+      })
+      .then((result) => {
+        sendToken({}, result, res);
+      })
+      .catch((exception) => {
+        return next(new ErrorHandler(exception, 500));
+      });
   });
 
   login = catchAsyncErrors(async (req, res, next) => {
