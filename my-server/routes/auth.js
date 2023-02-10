@@ -9,6 +9,7 @@ router.post("/login", AuthController.login);
 router.get("/testAuth", isAuthenticatedUserByFirebase, (req, res, next) =>
   res.json({ success: true })
 );
+router.get("/logout", AuthController.loginWithFirebase);
 
 router.post("/registerFirebase", AuthController.registerWithFirebase);
 router.post("/loginFirebase", AuthController.loginWithFirebase);

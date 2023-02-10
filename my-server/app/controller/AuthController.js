@@ -86,6 +86,14 @@ class AuthController {
 
     sendToken(userLogin, accessToken, res);
   });
+
+  logoutWithFirebase = catchAsyncErrors(async (req, res, next) => {
+    await firebaseClient.auth().signOut();
+    res.status(200);
+    res.send({
+      message: "You are logged out",
+    });
+  });
 }
 
 module.exports = new AuthController();
