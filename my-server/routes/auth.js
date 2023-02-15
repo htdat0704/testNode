@@ -13,6 +13,7 @@ router.get("/logout", AuthController.loginWithFirebase);
 
 router.post("/registerFirebase", AuthController.registerWithFirebase);
 router.post("/loginFirebase", AuthController.loginWithFirebase);
+router.post("/resetPassword", AuthController.resetPasswordFirebase);
 
 // router.get('/details/:id', TestController.detailsProduct);
 // router.get('/', TestController.getAllProduct);

@@ -23,8 +23,9 @@ new CronJob(
 class TestController {
   generateQR = catchAsyncErrors(async (req, res, next) => {
     let codeQR = await TestService.generateQRinDB(req.body, req.user);
+
     res.json({
-      qr: await TestService.generateQR(codeQR._id),
+      qr: await TestService.generateQR(codeQR),
       codeQRInformation: codeQR,
       success: true,
     });
@@ -84,9 +85,10 @@ class TestController {
 
     qrCodeInstance.callback = async (err, value) => {
       if (err) {
-        return next(new ErrorHandler("QR not found or expired", 404));
+        return next(new ErrorHandler(err, 404));
       }
       // __ Printing the decrypted value __ \\
+
       var bytes = crypto.AES.decrypt(value.result, process.env.QR_SECRET);
 
       var message_decode = bytes.toString(crypto.enc.Utf8);
@@ -95,20 +97,23 @@ class TestController {
         return next(new ErrorHandler("QR not found or expired!!", 404));
       }
 
-      const qrInformation = await TestService.findQR(message_decode);
+      // const qrInformation = await TestService.findQR(message_decode);
 
-      if (!qrInformation) {
-        return next(new ErrorHandler("QR not found or expired!!!", 404));
-      }
+      // if (!qrInformation) {
+      //   return next(new ErrorHandler("QR not found or expired!!!", 404));
+      // }
 
-      res.json({
-        qrInformation,
-        success: true,
-      });
+      return (await TestService.checkQRValid(JSON.parse(message_decode)._id))
+        ? res.json({
+            qrInformation: JSON.parse(message_decode),
+            success: true,
+          })
+        : next(new ErrorHandler("QR not found or expired !!", 404));
     };
     // var buffer = fs.readFileSync(
     //   process.env.BASE64.replace(/^data:image\/(png|jpg);base64,/, "")
     // );
+
     var buffer = Buffer.from(
       req.body.base64QR.replace(/^data:image\/(png|jpg);base64,/, ""),
       "base64"

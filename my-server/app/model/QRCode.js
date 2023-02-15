@@ -29,6 +29,9 @@ const QRCodeSchema = new mongoose.Schema({
   apartment: {
     type: String,
   },
+  duration: {
+    type: Number,
+  },
   userId: {
     type: mongoose.Schema.ObjectId,
     ref: "qrCodes",

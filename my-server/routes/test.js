@@ -13,7 +13,7 @@ const TestController = require("../app/controller/TestController");
 router.post(
   "/generate",
   isAuthenticatedUser,
-  authorizeRole("owner", "admin"),
+  authorizeRole("owner", "admin", "security"),
   TestController.generateQR
 );
 router.post(

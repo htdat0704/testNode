@@ -5,6 +5,7 @@ const cloudinary = require("cloudinary");
 const datefn = require("date-fns");
 const convertTimeToUTC = require("../../utils/convertTimeToUTC");
 const crypto = require("crypto-js");
+const { async } = require("@firebase/util");
 
 exports.searchDetail = async (id) => {
   return await User.findById(id).lean();
@@ -33,6 +34,7 @@ exports.generateQRinDB = async (body, user) => {
     name: body.name,
     validDate: body.validDate,
     relative: body.relative,
+    duration: body.duration,
     avatar: {
       public_id: resultAvatar.public_id,
       url: resultAvatar.secure_url,
@@ -44,20 +46,19 @@ exports.generateQRinDB = async (body, user) => {
   return await bodyQR.save();
 };
 
-exports.generateQR = async (QRId) => {
+exports.generateQR = async (QR) => {
   let qrIdDecode = crypto.AES.encrypt(
-    QRId.toString(),
+    JSON.stringify(QR),
     process.env.QR_SECRET
   ).toString();
-
   let qr = await QRCode.toDataURL(qrIdDecode);
-
+  console.log(qr);
   const result = await cloudinary.v2.uploader.upload(qr, {
     folder: "qrCodes/qr",
     width: 250,
     crop: "scale",
   });
-  await QRCodeModel.findByIdAndUpdate(QRId, {
+  await QRCodeModel.findByIdAndUpdate(QR._id, {
     public_id: result.public_id,
     url: result.secure_url,
   });
@@ -101,4 +102,37 @@ exports.deleteQRCodes = async (qr) => {
     (await cloudinary.v2.uploader.destroy(qr.avatar.public_id));
   qr.public_id && (await cloudinary.v2.uploader.destroy(qr.public_id));
   await QRCodeModel.deleteOne({ _id: qr._id });
+};
+
+exports.checkQRValid = async (QRId) => {
+  const qr = await QRCodeModel.findById(QRId);
+  if (!qr) {
+    return false;
+  }
+
+  return new Date().getTime() -
+    (new Date(qr.createdAt).getTime() + 86400000 * qr.duration.getTime()) <
+    0
+    ? true
+    : false;
+
+  // console.log(new Date().getTime());
+  // // console.log(new Date(new Date().getTime() + 86400000));
+  // console.log(new Date(createdAt).getTime());
+  // console.log(
+  //   new Date(new Date(createdAt).getTime() + 86400000 * durationTime).getTime()
+  // );
+  // console.log(
+  //   new Date().getTime() -
+  //     new Date(
+  //       new Date(createdAt).getTime() + 86400000 * durationTime
+  //     ).getTime()
+  // );
+  // console.log(
+  //   (new Date().getTime() -
+  //     new Date(
+  //       new Date(createdAt).getTime() + 86400000 * durationTime
+  //     ).getTime()) /
+  //     86400000
+  // );
 };

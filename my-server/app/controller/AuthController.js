@@ -7,6 +7,11 @@ const jwt = require("jsonwebtoken");
 const argon2 = require("argon2");
 const firebaseAdmin = require("firebase-admin");
 const firebaseClient = require("../../config/firebase");
+const {
+  signInWithEmailAndPassword,
+  getIdToken,
+  sendPasswordResetEmail,
+} = require("firebase/auth");
 
 class AuthController {
   register = catchAsyncErrors(async (req, res, next) => {
@@ -48,15 +53,28 @@ class AuthController {
   loginWithFirebase = catchAsyncErrors(async (req, res, next) => {
     const { email, password } = req.body;
     let user = {};
-    firebaseClient
-      .auth()
-      .signInWithEmailAndPassword(email, password)
+    //   firebaseClient
+    //     .auth()
+    //     .signInWithEmailAndPassword(email, password)
+    //     .then((authenticatedUser) => {
+    //       user = authenticatedUser.user;
+    //       return firebaseClient.auth().currentUser.getIdToken();
+    //     })
+    //     .then((result) => {
+    //       sendToken(user, result, res);
+    //     })
+    //     .catch((exception) => {
+    //       return next(new ErrorHandler(exception, 500));
+    //     });
+    // });
+    signInWithEmailAndPassword(firebaseClient, email, password)
       .then((authenticatedUser) => {
-        user = authenticatedUser;
-        return firebaseClient.auth().currentUser.getIdToken();
+        user = authenticatedUser.user;
+        return getIdToken(authenticatedUser.user);
       })
-      .then((result) => {
-        sendToken({}, result, res);
+      .then((token) => {
+        console.log(token);
+        return sendToken(user, token, res);
       })
       .catch((exception) => {
         return next(new ErrorHandler(exception, 500));
@@ -92,6 +110,14 @@ class AuthController {
     res.status(200);
     res.send({
       message: "You are logged out",
+    });
+  });
+
+  resetPasswordFirebase = catchAsyncErrors(async (req, res, next) => {
+    await sendPasswordResetEmail(firebaseClient, req.body.email);
+    res.json({
+      success: true,
+      message: "Password Reset Email has been sent",
     });
   });
 }
